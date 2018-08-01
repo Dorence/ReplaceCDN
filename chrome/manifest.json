@@ -1,17 +1,32 @@
 {
-    "name": "Replace Google CDN",
-    "version": "0.4.0",
+    "name": "Replace",
+    "version": "0.2.1",
     "manifest_version": 2,
-    "icons": {
-      "128": "icons/128.png"
-    },
-    "description": "Replace Google CDN with USTC CDN.",
-    "background": {
-        "scripts": ["js/background.js"]
-    },
-    "permissions": [
-        "webRequest", "webRequestBlocking", "<all_urls>"
-    ],
-    "author": "https://github.com/justjavac",
-    "homepage_url": "https://github.com/justjavac/ReplaceGoogleCDN"
+    "icons":{"128": "icons/128.png"},
+    "description": "Replace Some CDN & Block Ads",
+    "background": {"scripts": ["js/background.js"]},
+	"browser_action": {
+    	"default_icon": "icons/128.png",
+    	"default_title": "REplace",
+		"default_popup": "html/popup.html"
+  	},
+	"offline_enabled": true,
+    "permissions":
+	[
+		"webRequest",
+		"webRequestBlocking",
+		"<all_urls>",
+		"activeTab"
+	],
+    "author": "Dorence",
+    "homepage_url": "https://github.com/Dorence/ReplaceCDN",
+	"web_accessible_resources": ["assets/*"],
+	"content_scripts": [
+        {"matches": ["*://*.e21.cn/*"],"js": ["js/e21.js"]},
+		{"matches": ["*://*.66ys.tv/*","*://www.dy2018.com/*"],"js": ["js/66ys.js"]},
+		{"matches": ["*://*.hupu.com/*","*://t1.hoopchina.com.cn/topn-v2.html"],"js": ["js/hupu.js"]},
+		{"matches": ["*://www.cnblogs.com/*"],"js": ["js/cnblog.js"]},
+		{"matches": ["*://*.sina.com.cn/*"],"js": ["js/sina.js"]},
+		{"matches": ["*://*.luogu.org/login/loginpage/*"],"js": ["js/luogu.js"]}
+    ]
 }
