@@ -6,7 +6,7 @@ var fileTree={};
 var gitROOT="assets/githubCDN/";
 
 chrome.browserAction.setBadgeText({text:""});
-chrome.runtime.getPackageDirectoryEntry(function(e){e.getDirectory("assets/githubCDN",{create: false},function(subEntry){getSubEntries(fileTree,subEntry);console.log(fileTree)});});
+chrome.runtime.getPackageDirectoryEntry(function(e){e.getDirectory("assets/githubCDN",{create: false},function(subEntry){getSubEntries(fileTree,subEntry);console.log(fileTree);});});
 
 function getSubEntries(Parent,Entry)
 {
@@ -41,26 +41,25 @@ function checkFileExist(url)
 }
 
 chrome.webRequest.onBeforeRequest.addListener(function(request)
-    {
-		var u=request.url;
-		var x0=u.indexOf("://");
-		u=u.substr(x0+3);
-		x0=u.indexOf("/");
-		if(x0>=0)
+{
+	var u=request.url;
+	var x0=u.indexOf("://");
+	u=u.substr(x0+3);
+	x0=u.indexOf("/");
+	if(x0>=0)
+	{
+		u=u.substr(x0+1);
+		if(checkFileExist(u))
 		{
-			u=u.substr(x0+1);
-			if(checkFileExist(u))
-			{
-				u=P(gitROOT+u);
-				console.log("githubCDN found:"+u);
-				return {redirectUrl: u};
-			}
-			else{console.log("githubCDN not FOUND");}
+			u=P(gitROOT+u);
+			console.log("githubCDN found:"+u);
+			return {redirectUrl: u};
 		}
 		else{console.log("githubCDN not FOUND");}
-		return {};
-    },{urls: ["*://assets-cdn.github.com/*"]},["blocking"]
-);
+	}
+	else{console.log("githubCDN not FOUND");}
+	return {};
+},{urls: ["*://assets-cdn.github.com/*"]},["blocking"]);
 
 function L(flag,r){var q=["","assets/","assets/github/","assets/github/png/","assets/fonts/"];return P(q[flag]+r);}
 
@@ -193,33 +192,25 @@ var parPop=[
 console.log(parPop);
 
 chrome.webRequest.onBeforeRequest.addListener(
-    function(request) {
+    function(request){
         var url = request.url;
-		var p=parPop;
-		for(var i = 0;i < p.length;i++)
+		for(var i=0;i<parPop.length;i++)
 		{
-			if(url.search(p[i][0])>=0)
+			if(url.search(parPop[i][0])>=0)
 			{
 				console.log(url);
-				console.log(p[i][1]);
+				console.log(parPop[i][1]);
 				chrome.browserAction.setBadgeText({text: String(++cnt)});
-				if(p[i][2]){ return {redirectUrl: p[i][1]}; }
-				else{ return {redirectUrl: url.replace(p[i][0],p[i][1])}; }
+				if(parPop[i][2]){ return {redirectUrl: parPop[i][1]}; }
+				else{ return {redirectUrl: url.replace(parPop[i][0],parPop[i][1])}; }
 			}
 		}
         return {};
-    },
-    {
-        urls: [
-	"*://*.iqiyi.com/*"
-        ]
-    },
-    ["blocking"]
+    },{urls:["*://*.iqiyi.com/*"]},["blocking"]
 );
 
 chrome.runtime.onMessage.addListener(function(message,sender,sendResponse){
 	console.log(message);
-	
     if(message.type&&message.type==="pop.js-start"){
         sendResponse({text:'Hello from bg.',flaglogin:get.login});
 		if(get.login){
@@ -237,7 +228,6 @@ chrome.runtime.onMessage.addListener(function(message,sender,sendResponse){
 		});
 		return {id:get.loginid};
     }
-	
 });
 
 function getCurrWidId()
@@ -273,4 +263,3 @@ chrome.runtime.onConnect.addListener(function(port){
 		});
 	}
 });
-
