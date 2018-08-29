@@ -2,69 +2,74 @@
 var chrome=chrome,P=chrome.runtime.getURL;
 var get={};
 var cnt=0;
-var fileTree={};
-var gitROOT="assets/githubCDN/";
 
 chrome.browserAction.setBadgeText({text:""});
-chrome.runtime.getPackageDirectoryEntry(function(e){e.getDirectory("assets/githubCDN",{create: false},function(subEntry){getSubEntries(fileTree,subEntry);console.log(fileTree);});});
 
-function getSubEntries(Parent,Entry)
+//PART 1
+//github static CDN replace
++function()
 {
-    var dirReader=Entry.createReader();
-    dirReader.readEntries(function(e)
+	var fileTree={};
+	chrome.runtime.getPackageDirectoryEntry(function(e){e.getDirectory("assets/githubCDN",{create: false},function(entry){getSubEntries(fileTree,entry);console.log(fileTree);});});
+	function getSubEntries(Parent,Entry)
 	{
-        for(var i=0;i<e.length;i++)
+		var dirReader=Entry.createReader();
+		dirReader.readEntries(function(e)
 		{
-			if(e[i].isDirectory)
+			for(var i=0;i<e.length;i++)
 			{
-				Parent[e[i].name]={};
-                getSubEntries(Parent[e[i].name],e[i]);
-            }
-			else if(e[i].isFile){Parent[e[i].name]=true;}
-        }
-    });
-}
-
-function checkFileExist(url)
-{
-	//console.log("check start:"+url);
-	url=url.split("/");
-	for(var i=0,t=fileTree;i<url.length;i++)
-	{
-		if(t[ url[i] ])
-		{
-			if(i===url.length-1){return true;}
-			else{t=t[ url[i] ];}
-		}
-		else{return false;}
+				if(e[i].isDirectory)
+				{
+					Parent[e[i].name]={};
+					getSubEntries(Parent[e[i].name],e[i]);
+				}
+				else if(e[i].isFile){Parent[e[i].name]=true;}
+			}
+		});
 	}
-}
-
-chrome.webRequest.onBeforeRequest.addListener(function(request)
-{
-	var u=request.url;
-	var x0=u.indexOf("://");
-	u=u.substr(x0+3);
-	x0=u.indexOf("/");
-	if(x0>=0)
+	function checkFileExist(url)
 	{
-		u=u.substr(x0+1);
-		if(checkFileExist(u))
+		//console.log("check start:"+url);
+		url=url.split("/");
+		for(var i=0,t=fileTree;i<url.length;i++)
 		{
-			u=P(gitROOT+u);
-			console.log("githubCDN found:"+u);
-			return {redirectUrl: u};
+			if(t[ url[i] ])
+			{
+				if(i===url.length-1){return true;}
+				else{t=t[ url[i] ];}
+			}
+			else{return false;}
+		}
+	}
+	chrome.webRequest.onBeforeRequest.addListener(function(request)
+	{
+		var u=request.url;
+		var x0=u.indexOf("://");
+		u=u.substr(x0+3);
+		x0=u.indexOf("/");
+		if(x0>=0)
+		{
+			u=u.substr(x0+1);
+			if(checkFileExist(u))
+			{
+				u=P("assets/githubCDN/"+u);
+				console.log("githubCDN found:"+u);
+				return {redirectUrl: u};
+			}
+			else{console.log("githubCDN not FOUND");}
 		}
 		else{console.log("githubCDN not FOUND");}
-	}
-	else{console.log("githubCDN not FOUND");}
-	return {};
-},{urls: ["*://assets-cdn.github.com/*"]},["blocking"]);
+		return {};
+	},{urls: ["*://assets-cdn.github.com/*"]},["blocking"]);
+}();
 
-function L(flag,r){var q=["","assets/","assets/github/","assets/github/png/","assets/fonts/"];return P(q[flag]+r);}
+//PART 2
+
+function L(flag,r){var q=["","assets/","assets/fonts/"];return P(q[flag]+r);}
 
 var par=[
-[/https?:\/\/gzkg\.e21\.cn\/js\/jquery\.js/,L(1,"jquery-1.4.4.min.js"),true],[/https?:\/\/ajax\.googleapis\.com\/ajax\/libs\/jquery\/1/i,L(1,"jquery-1.12.4.min.js"),true],
+[/https?:\/\/gzkg\.e21\.cn\/js\/jquery\.js/,L(1,"jquery-1.4.4.min.js"),true],
+[/https?:\/\/ajax\.googleapis\.com\/ajax\/libs\/jquery\/1/i,L(1,"jquery-1.12.4.min.js"),true],
 [/https?:\/\/ajax\.googleapis\.com\/ajax\/libs\/jquery\/2/i,L(1,"jquery-2.2.4.min.js"),true],
 [/https?:\/\/ajax\.googleapis\.com\/ajax\/libs\/jquery\/3/i,L(1,"jquery-3.3.1.min.js"),true],
 [/https?:\/\/ajax\.googleapis\.com\/ajax\/libs\/jqueryui\/1(([0-9]|\.)*)\/jquery-ui(\.min)?\.js/i,L(1,"jquery-ui-1.12.1.min.js"),true],
@@ -77,24 +82,23 @@ var par=[
 
 [/https?:\/\/ajax\.googleapis\.com\/ajax\/libs\/jquery\//i,'https://cdn.bootcss.com/jquery/'],
 [/https?:\/\/ajax\.googleapis\.com\/ajax\/libs\/jqueryui\//i,'https://cdn.bootcss.com/jqueryui/'],
-	
 ['googleapis.com','lug.ustc.edu.cn'],
 ['themes.googleusercontent.com','google-themes.lug.ustc.edu.cn'],
 
 [/https?:\/\/[A-z]*.e21.cn\/html\/advertisement\/([0-9]|\/)+_[0-9]+(_s\.jpg|\.jpg|_s\.gif)/,L(1,"ad.png"),true],
 [/https?:\/\/gzkg\.e21\.cn\/images\/(dlgg[0-9]*|kstd).gif/,L(1,"ad.png"),true],
-
 [/https?:\/\/tpc\.googlesyndication\.com\/pagead\/imgad/,L(1,"ad.png"),true],
 [/https?:\/\/tpc\.googlesyndication\.com\/daca_images\/simgad\//,L(1,"ad.png"),true],
 [/https?:\/\/t1\.hoopchina\.com\.cn\/img\/1?[0-9]{11,}\.jpg/,L(1,"ad.png"),true],
-
-
 [/https?:\/\/static\.googleadsserving\.cn\/pagead\/imgad/,L(1,"ad.png"),true],
 ["http://wa.gtimg.com/website/201804/jdnbpe_EF_20180413161116288.jpg",L(1,"ad.png"),true],
 ["http://wa.gtimg.com/website/201804/jdnbpe_EF_2018041316111141.jpg",L(1,"ad.png"),true],
 ["http://www.66ys.tv/d/960x90.gif",L(1,"ad.png"),true],
 [/https?:\/\/gg\.qucaigg\.com:[0-9]{2,5}\/960-90-[0-9]*.gif/,L(1,"ad.png"),true],
-[/https?:\/\/lg3\.jointreport-switch\.com\/html\/[0-9]*\/[^\s]*.(gif|jpg)/,L(1,"ad.png"),true],
+[/https?:\/\/lg3\.jointreport-switch\.com\/html\/[0-9]*\/[^\s]*.(gif|jpg)/,L(1,"ad.png"),true],[/https?:\/\/s3\.pfp\.sina\.net\/ea\/ad\/[^\s]+\/([0-9]|[A-z])+\.(jpe?g|png)/,L(1,"ad.png"),true],
+[/https?:\/\/s3\.pfp\.sina\.net\/sword\/[^\s]+\/([0-9]|[A-z])+\.(jpe?g|png)/,L(1,"ad.png"),true],
+[/https?:\/\/img-ads\.csdn\.net\/20[0-9]{2}\/20[0-9]{6}[0-9]+\.(gif|jpg|png)/,L(1,"ad.png"),true],
+[/https?:\/\/s3m\.mediav\.com\/[^\s]*\.(gif|jpg|png)/,L(1,"ad.png"),true],
 	
 [/https?:\/\/tpc\.googlesyndication\.com\/pagead\/js/,L(1,"null.js"),true],	
 [/https?:\/\/ad\.wang502\.com\/ad?/,L(1,"null.js"),true],
@@ -105,28 +109,17 @@ var par=[
 ["https://www.googletagservices.com/tag/js/gpt.js",L(1,"null.js"),true],
 ["https://www.dy2018.com/js17/syf.js",L(1,"null.js"),true],
 ["https://img.xiacaidd.com/xiacai/ad/t18.js",L(1,"null.js"),true],
-	
 ["http://screen.aili.com/bvzdas.js",L(1,"null.js"),true],
-[/https?:\/\/s3\.pfp\.sina\.net\/ea\/ad\/[^\s]+\/([0-9]|[A-z])+\.(jpe?g|png)/,L(1,"ad.png"),true],
-[/https?:\/\/s3\.pfp\.sina\.net\/sword\/[^\s]+\/([0-9]|[A-z])+\.(jpe?g|png)/,L(1,"ad.png"),true],
 
-[/https?:\/\/safe-aisle\.jointreport-switch\.com\/(display|export)\.php?/,L(1,"null.html"),true],
 [/https?:\/\/cpv-adv\.ggytc\.com:[0-9]*\/AD\/View\.aspx/,L(1,"null.html"),true],
 [/https?:\/\/jsjs\.nthyn\.com\/vs?\.php\??/,L(1,"null.html"),true],
 [/https?:\/\/googleads\.g\.doubleclick\.net\/pagead\/ads?/,L(1,"null.html"),true],
 [/https?:\/\/t1\.hoopchina\.com\.cn\/topn-v2\.html[^\s]*/,L(1,"null.html"),true],
 [/https?:\/\/blog\.sina\.com\.cn\/lm\/mini\/[0-9]+\.html/,L(1,"null.html"),true],
-["http://d6.sina.com.cn/litong/zhitou/sinaads/src/spec/sinaads_ck.html",L(1,"null.html"),true],
 
-
-["http://zh.cppreference.com/DejaVuSans.ttf",L(3,"DejaVuSans.ttf"),true],
-["http://zh.cppreference.com/DejaVuSans-Bold.ttf",L(3,"DejaVuSans-Bold.ttf"),true],
-["http://zh.cppreference.com/DejaVuSansMono.ttf",L(3,"DejaVuSansMono.ttf"),true],
-
-[/https?:\/\/img-ads\.csdn\.net\/20[0-9]{2}\/20[0-9]{6}[0-9]+\.(gif|jpg|png)/,L(1,"ad.png"),true],
-[/https?:\/\/s3m\.mediav\.com\/[^\s]*\.(gif|jpg|png)/,L(1,"ad.png"),true],
-	
-["www.google.com.hk","www.google.com"]
+["http://zh.cppreference.com/DejaVuSans.ttf",L(2,"DejaVuSans.ttf"),true],
+["http://zh.cppreference.com/DejaVuSans-Bold.ttf",L(2,"DejaVuSans-Bold.ttf"),true],
+["http://zh.cppreference.com/DejaVuSansMono.ttf",L(2,"DejaVuSansMono.ttf"),true]
 ];
 
 console.log(par);
@@ -151,7 +144,6 @@ chrome.webRequest.onBeforeRequest.addListener(
     {
         urls: [
 	"*://*.e21.cn/*",
-	"*://*.jointreport-switch.com/*",
 	"*://ad.wang502.com/ad*",
 	"*://ajax.googleapis.com/*",
 	"*://b3.hoopchina.com.cn/web/ad/*",
@@ -164,6 +156,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 	"*://img.xiacaidd.com/xiacai/ad/*",
 	"*://img-ads.csdn.net/*",
 	"*://jsjs.nthyn.com/*",
+	"*://lg3.jointreport-switch.com/html/*",
 	"*://promotion.aliyun.com/promotion/adv/*",
 	"*://s3.pfp.sina.net/*",
 	"*://s3m.mediav.com/*",
@@ -176,7 +169,6 @@ chrome.webRequest.onBeforeRequest.addListener(
 	"*://wa.gtimg.com/website/*",
 	"*://www.66ys.tv/d/*",
 	"*://www.dy2018.com/*",
-	"*://www.google.com.hk/*",
 	"*://www.googletagservices.com/*",
 	"*://zh.cppreference.com/*"
         ]
@@ -184,30 +176,41 @@ chrome.webRequest.onBeforeRequest.addListener(
     ["blocking"]
 );
 
-var parPop=[
-[/https?:\/\/(g|games|playgame)\.iqiyi\.com/,L(1,"null.html"),true],
-[/https?:\/\/mall\.iqiyi\.com/,L(1,"null.html"),true]
+var parHTML=[
+/https?:\/\/(g|games|playgame)\.iqiyi\.com/,
+/https?:\/\/mall\.iqiyi\.com/,
+"http://d6.sina.com.cn/litong/zhitou/sinaads/src/spec/sinaads_ck.html",
+/https?:\/\/safe-aisle\.jointreport-switch\.com\/(display|export)\.php?/
 ];
-
-console.log(parPop);
+console.log(parHTML);
 
 chrome.webRequest.onBeforeRequest.addListener(
     function(request){
         var url = request.url;
-		for(var i=0;i<parPop.length;i++)
+		for(var i=0;i<parHTML.length;i++)
 		{
-			if(url.search(parPop[i][0])>=0)
+			if(url.search(parHTML[i])>=0)
 			{
 				console.log(url);
-				console.log(parPop[i][1]);
 				chrome.browserAction.setBadgeText({text: String(++cnt)});
-				if(parPop[i][2]){ return {redirectUrl: parPop[i][1]}; }
-				else{ return {redirectUrl: url.replace(parPop[i][0],parPop[i][1])}; }
+				return {redirectUrl: P("assets/null.html")};
 			}
 		}
         return {};
-    },{urls:["*://*.iqiyi.com/*"]},["blocking"]
+    },{
+	urls:[
+		"*://*.iqiyi.com/*",
+		"*://d6.sina.com.cn/*",
+		"*://safe-aisle.jointreport-switch.com/*",
+	]},["blocking"]
 );
+
+function getCurrWidId()
+{
+	var w;
+	chrome.windows.get(-2,function(win){w=win.id;});
+	return w;
+}
 
 chrome.runtime.onMessage.addListener(function(message,sender,sendResponse){
 	console.log(message);
@@ -222,20 +225,11 @@ chrome.runtime.onMessage.addListener(function(message,sender,sendResponse){
     }
 	else if(message.type&&message.type==="login"){
 		get.login=true;
-		chrome.windows.get(chrome.windows.WINDOW_ID_CURRENT,function(win){
-			console.log(win);
-			console.log(get.loginid=win.id);
-		});
+		get.loginid=getCurrWidId();
 		return {id:get.loginid};
     }
 });
 
-function getCurrWidId()
-{
-	var w;
-	chrome.windows.get(-2,function(win){console.log(win);w=win.id;});
-	return w;
-}
 
 chrome.runtime.onConnect.addListener(function(port){
 	console.log("get port:"+port.name);

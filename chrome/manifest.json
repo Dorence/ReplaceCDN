@@ -1,9 +1,9 @@
 {
-    "name": "Replace",
-    "version": "0.2.1",
+    "name": "REplace",
+    "version": "0.2.2",
     "manifest_version": 2,
     "icons":{"128": "icons/128.png"},
-    "description": "Replace Some CDN & Block Ads",
+    "description": "Replace Some CDNs & Block Ads",
     "background": {"scripts": ["js/background.js"]},
 	"browser_action": {
     	"default_icon": "icons/128.png",
